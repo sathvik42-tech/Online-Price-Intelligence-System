@@ -1,0 +1,211 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: price_intelligence_db
+    environment:
+      POSTGRES_DB: price_intelligence
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend-express/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./backend-express/db/00_performance_optimization.sql:/docker-entrypoint-initdb.d/02-optimization.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: price_intelligence_cache
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  # Express Backend (Authentication)
+  backend-express:
+    build:
+      context: ./backend-express
+      dockerfile: Dockerfile
+    container_name: price_intelligence_express
+    environment:
+      NODE_ENV: development
+      PORT: 5001
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: price_intelligence
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+    ports:
+      - "5001:5001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend-express:/app
+      - /app/node_modules
+    command: npm start
+    networks:
+      - app-network
+
+  # Python FastAPI Backend (Scraping, Image Recognition)
+  backend-python:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: price_intelligence_python
+    environment:
+      PYTHONUNBUFFERED: 1
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: price_intelligence
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+    ports:
+      - "8001:8001"
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - ./backend/static:/app/static
+      - /app/__pycache__
+    command: python -m uvicorn app.main_optimized:app --host 0.0.0.0 --port 8001 --reload
+    networks:
+      - app-network
+
+  # Celery Worker (Background Tasks)
+  celery-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: price_intelligence_worker
+    environment:
+      PYTHONUNBUFFERED: 1
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: price_intelligence
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+    depends_on:
+      - backend-python
+      - redis
+    volumes:
+      - ./backend:/app
+      - /app/__pycache__
+    command: celery -A app.celery_app worker --loglevel=info --concurrency=4
+    networks:
+      - app-network
+
+  # Celery Beat (Scheduler)
+  celery-beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: price_intelligence_beat
+    environment:
+      PYTHONUNBUFFERED: 1
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+    depends_on:
+      - celery-worker
+      - redis
+    volumes:
+      - ./backend:/app
+      - /app/__pycache__
+    command: celery -A app.celery_app beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    networks:
+      - app-network
+
+  # Flower (Celery Monitoring)
+  flower:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: price_intelligence_flower
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+    ports:
+      - "5555:5555"
+    depends_on:
+      - celery-worker
+    command: celery -A app.celery_app flower --port=5555 --broker=redis://redis:6379/1
+    networks:
+      - app-network
+
+  # React Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: price_intelligence_frontend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:8001
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm run dev
+    networks:
+      - app-network
+
+  # Nginx Reverse Proxy (Optional)
+  nginx:
+    image: nginx:alpine
+    container_name: price_intelligence_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./backend/static:/usr/share/nginx/html/static:ro
+    depends_on:
+      - backend-express
+      - backend-python
+      - frontend
+    networks:
+      - app-network
+    profiles:
+      - production
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge

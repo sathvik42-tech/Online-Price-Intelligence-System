@@ -1,0 +1,109 @@
+{
+    "raw_results": [
+        {
+            "platform": "snapdeal",
+            "title": "Spreading Smiles Red Heart Tin Box Teddy Roses with Love Message for Valentines Day Gift (3 Pieces Roses 1 Small Bear)",
+            "price": 0.173,
+            "currency": "INR",
+            "availability": "In Stock",
+            "product_url": "https://www.snapdeal.com/product/spreading-smiles-metal-valentine-hamper/670425794128",
+            "image_url": "https://g.sdlcdn.com/imgs/j/m/7/Spreading-Smiles-Metal-Valentine-Hamper-SDL496106743-1-fd0e5.jpeg?w=220&h=258&sharp=7",
+            "seller_rating": "4.0",
+            "shipping_info": "Free Shipping Available"
+        },
+        {
+            "platform": "snapdeal",
+            "title": "Flaner Plastic 2 Pack Toothbrush Holders For Bathroom Waterproof Self Adhesive Wall Mount For All Types Tooth Brush, Toothpaste, Face-Cream, Teddy Bear Shaped With Cup Drain (Multicolor)",
+            "price": 0.156,
+            "currency": "INR",
+            "availability": "In Stock",
+            "product_url": "https://www.snapdeal.com/product/flaner-plastic-2-pack-toothbrush/667962486584",
+            "image_url": "https://g.sdlcdn.com/imgs/l/b/p/Flaner-Plastic-2-Pack-Toothbrush-SDL737092662-1-f1406.jpg?w=220&h=258&sharp=7",
+            "seller_rating": "4.0",
+            "shipping_info": "Free Shipping Available"
+        },
+        {
+            "platform": "snapdeal",
+            "title": "Adbeni Teddy Lip Gloss Tint, 7ml For Dry And Chapped Lips, 1pc (Assorted)",
+            "price": 0.165,
+            "currency": "INR",
+            "availability": "In Stock",
+            "product_url": "https://www.snapdeal.com/product/adbeni-nude-glossy-lip-gloss/619652242037",
+            "image_url": "https://g.sdlcdn.com/imgs/k/x/a/Adbeni-Nude-Glossy-Lip-Gloss-SDL687370431-1-d859a.jpg?w=220&h=258&sharp=7",
+            "seller_rating": "4.0",
+            "shipping_info": "Free Shipping Available"
+        },
+        {
+            "platform": "snapdeal",
+            "title": "9ITE LOV Fluorescent Pink Lace Women's Nightwear Teddies ( Pack of 1 )",
+            "price": 0.271,
+            "currency": "INR",
+            "availability": "In Stock",
+            "product_url": "https://www.snapdeal.com/product/9ite-lov-orange-lace-womens/637515777460",
+            "image_url": "https://g.sdlcdn.com/imgs/k/5/e/9ITE-LOV-Fluorescent-Pink-Lace-SDL507891503-1-862c7.jpg?w=220&h=258&sharp=7",
+            "seller_rating": "4.0",
+            "shipping_info": "Free Shipping Available"
+        },
+        {
+            "platform": "snapdeal",
+            "title": "Teddy toothbrushes holder pack of 2",
+            "price": 0.122,
+            "currency": "INR",
+            "availability": "In Stock",
+            "product_url": "https://www.snapdeal.com/product/teddy-toothbrushes-holder-pack-of/628412144105",
+            "image_url": "https://g.sdlcdn.com/imgs/k/8/a/Teddy-toothbrushes-holder-pack-of-SDL706136911-1-03e5d.jpg?w=220&h=258&sharp=7",
+            "seller_rating": "4.0",
+            "shipping_info": "Free Shipping Available"
+        },
+        {
+            "platform": "snapdeal",
+            "title": "Sai Designs Teddy Bear Wall Sticker for Kids Room( PVC Vinyl, 79 X 77 )",
+            "price": 0.173,
+            "currency": "INR",
+            "availability": "In Stock",
+            "product_url": "https://www.snapdeal.com/product/sai-designs-teddy-bear-wall/626877322110",
+            "image_url": "https://g.sdlcdn.com/imgs/l/d/4/Sai-Designs-Teddy-Bear-Wall-SDL437824429-1-268ae.jpg?w=220&h=258&sharp=7",
+            "seller_rating": "4.0",
+            "shipping_info": "Free Shipping Available"
+        },
+        {
+            "platform": "snapdeal",
+            "title": "Mi Kees Cute Teddy Bear Water Bottle Purple Plastic Sipper Water Bottle 500 mL ( Set of 1 )",
+            "price": 0.332,
+            "currency": "INR",
+            "availability": "In Stock",
+            "product_url": "https://www.snapdeal.com/product/mi-kees-cute-teddy-bear/6917529701826421598",
+            "image_url": "https://g.sdlcdn.com/imgs/l/h/1/Mi-Kees-Cute-Teddy-Bear-SDL031883827-1-83c9a.png?w=220&h=258&sharp=7",
+            "seller_rating": "4.0",
+            "shipping_info": "Free Shipping Available"
+        },
+        {
+            "platform": "snapdeal",
+            "title": "Flaner Wall Mounted Self-Adhesive Multipurpose Toothbrush Stand for Bathroom Storage Holder for Toothpaste Razor Comb Trimmer Tongue Cleaner Toiletries Organizer(pack of 3) Teddy Bear shaped",
+            "price": 0.223,
+            "currency": "INR",
+            "availability": "In Stock",
+            "product_url": "https://www.snapdeal.com/product/flaner-wall-mounted-selfadhesive-multipurpose/678932456030",
+            "image_url": "https://g.sdlcdn.com/imgs/l/b/p/Flaner-Wall-Mounted-Self-Adhesive-SDL638386361-1-c57d4.jpg?w=220&h=258&sharp=7",
+            "seller_rating": "4.0",
+            "shipping_info": "Free Shipping Available"
+        }
+    ],
+    "aggregated": [
+        {
+            "platform": "Snapdeal",
+            "title": "Teddy toothbrushes holder pack of 2",
+            "original_name": "Teddy toothbrushes holder pack of 2",
+            "normalized_name": "teddy toothbrushes holder pack of 2",
+            "price": 0.122,
+            "shipping": 0.0,
+            "total_cost": 0.12,
+            "product_url": "https://www.snapdeal.com/product/teddy-toothbrushes-holder-pack-of/628412144105",
+            "image_url": "https://g.sdlcdn.com/imgs/k/8/a/Teddy-toothbrushes-holder-pack-of-SDL706136911-1-03e5d.jpg?w=220&h=258&sharp=7",
+            "seller_rating": "4.0",
+            "availability": "In Stock",
+            "currency": "INR",
+            "score": 0
+        }
+    ]
+}

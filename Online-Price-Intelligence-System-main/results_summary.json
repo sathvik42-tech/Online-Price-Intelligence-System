@@ -1,0 +1,142 @@
+{
+    "ebay": [],
+    "walmart": [],
+    "bestbuy": [],
+    "snapdeal": [
+        {
+            "platform": "snapdeal",
+            "title": "USB 3.0 To Sata Converter Cable for 2.5 Inch Hard Drive HDD SSD Laptop with UASP and USB Power Cable - Suitable for SSD - HDD",
+            "price": 429.0,
+            "currency": "INR",
+            "availability": "In Stock",
+            "product_url": "https://www.snapdeal.com/product/usb-30-to-sata-converter/636639487045",
+            "image_url": "https://g.sdlcdn.com/imgs/k/w/k/USB-3-0-To-Sata-SDL375467467-1-32ad8.jpg?w=220&h=258&sharp=7",
+            "seller_rating": "4.0",
+            "shipping_info": "Free Shipping Available"
+        },
+        {
+            "platform": "snapdeal",
+            "title": "Lapster USB 3.0 sata Cable for 2.5 inch SSD and HDD, USB 3.0 to SATA III Hard Driver Adapter, sata to USB Cable-(Blue)",
+            "price": 282.0,
+            "currency": "INR",
+            "availability": "In Stock",
+            "product_url": "https://www.snapdeal.com/product/lapster-usb-30-sata-cable/662990923884",
+            "image_url": "https://g.sdlcdn.com/imgs/l/d/4/Lapster-USB-3-0-sata-SDL717048152-1-aa868.jpg?w=220&h=258&sharp=7",
+            "seller_rating": "4.0",
+            "shipping_info": "Free Shipping Available"
+        },
+        {
+            "platform": "snapdeal",
+            "title": "SSD Plastic Food Snack Bag Pouch Clip Sealer for Keeping Food Fresh for Home Kitchen Camping Manual Vacuum Bag Sealer",
+            "price": 149.0,
+            "currency": "INR",
+            "availability": "In Stock",
+            "product_url": "https://www.snapdeal.com/product/ssd-plastic-food-snack-bag/618476846783",
+            "image_url": "https://g.sdlcdn.com/imgs/h/1/4/SSD-Plastic-Food-Snack-Bag-SDL640115254-1-3d73a.jpeg?w=220&h=258&sharp=7",
+            "seller_rating": "4.0",
+            "shipping_info": "Free Shipping Available"
+        },
+        {
+            "platform": "snapdeal",
+            "title": "SSD Plastic Food Snack Bag Pouch Clip Sealer for Keeping Food Fresh for Home Kitchen Camping(3 inch long) Manual Vacuum Bag Sealer",
+            "price": 143.0,
+            "currency": "INR",
+            "availability": "In Stock",
+            "product_url": "https://www.snapdeal.com/product/ssd-plastic-food-snack-bag/686638765021",
+            "image_url": "https://g.sdlcdn.com/imgs/h/1/4/SSD-Plastic-Food-Snack-Bag-SDL636867329-1-a7d0e.jpeg?w=220&h=258&sharp=7",
+            "seller_rating": "4.0",
+            "shipping_info": "Free Shipping Available"
+        }
+    ],
+    "meesho": [],
+    "target": [
+        {
+            "platform": "target",
+            "title": "PLP Recommendations",
+            "price": 0.0,
+            "currency": "USD",
+            "availability": "In Stock",
+            "product_url": "https://www.target.com/p/-/A-WEB-c_web_plp_recs_v01",
+            "image_url": "",
+            "seller_rating": "4.2",
+            "shipping_info": "Standard Shipping"
+        },
+        {
+            "platform": "target",
+            "title": "Product Grid",
+            "price": 0.0,
+            "currency": "USD",
+            "availability": "In Stock",
+            "product_url": "https://www.target.com/p/-/A-WEB-c_web_productgrid_v01",
+            "image_url": "",
+            "seller_rating": "4.2",
+            "shipping_info": "Standard Shipping"
+        },
+        {
+            "platform": "target",
+            "title": "Roundel",
+            "price": 0.0,
+            "currency": "USD",
+            "availability": "In Stock",
+            "product_url": "https://www.target.com/p/-/A-WEB-c_web_dvm_v01",
+            "image_url": "",
+            "seller_rating": "4.2",
+            "shipping_info": "Standard Shipping"
+        },
+        {
+            "platform": "target",
+            "title": "GB_CIRCLEWEEK_COMING_AOG_3.18",
+            "price": 0.0,
+            "currency": "USD",
+            "availability": "In Stock",
+            "product_url": "https://www.target.com/p/-/A-WEB-441642",
+            "image_url": "",
+            "seller_rating": "4.2",
+            "shipping_info": "Standard Shipping"
+        },
+        {
+            "platform": "target",
+            "title": "2.26 New & Featured Nav Refresh",
+            "price": 0.0,
+            "currency": "USD",
+            "availability": "In Stock",
+            "product_url": "https://www.target.com/p/-/A-WEB-440979",
+            "image_url": "",
+            "seller_rating": "4.2",
+            "shipping_info": "Standard Shipping"
+        },
+        {
+            "platform": "target",
+            "title": "Dynamic Category Browse",
+            "price": 0.0,
+            "currency": "USD",
+            "availability": "In Stock",
+            "product_url": "https://www.target.com/p/-/A-WEB-c_web_a_0030_v01",
+            "image_url": "",
+            "seller_rating": "4.2",
+            "shipping_info": "Standard Shipping"
+        },
+        {
+            "platform": "target",
+            "title": "Global_CatNav_11.14.25",
+            "price": 0.0,
+            "currency": "USD",
+            "availability": "In Stock",
+            "product_url": "https://www.target.com/p/-/A-WEB-436016",
+            "image_url": "",
+            "seller_rating": "4.2",
+            "shipping_info": "Standard Shipping"
+        },
+        {
+            "platform": "target",
+            "title": "Page Title",
+            "price": 0.0,
+            "currency": "USD",
+            "availability": "In Stock",
+            "product_url": "https://www.target.com/p/-/A-WEB-c_web_pagetitle_v01",
+            "image_url": "",
+            "seller_rating": "4.2",
+            "shipping_info": "Standard Shipping"
+        }
+    ]
+}

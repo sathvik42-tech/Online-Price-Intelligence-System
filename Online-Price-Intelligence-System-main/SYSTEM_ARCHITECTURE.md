@@ -1,0 +1,421 @@
+# System Architecture - Authentication Flow
+
+## High-Level System Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                         USER'S BROWSER                              │
+│                                                                     │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │                    React Frontend                             │  │
+│  │                  (http://localhost:5173)                      │  │
+│  │                                                              │  │
+│  │  ┌────────────┐  ┌────────────┐  ┌────────────┐            │  │
+│  │  │   Login    │  │ Dashboard  │  │ Wishlist   │            │  │
+│  │  │   Page     │  │    Page    │  │    Page    │            │  │
+│  │  └────────────┘  └────────────┘  └────────────┘            │  │
+│  │         │               │               │                   │  │
+│  │         └───────────────┼───────────────┘                   │  │
+│  │                         │                                   │  │
+│  │                    ┌────▼────┐                              │  │
+│  │                    │ api.js   │ ◄─── Centralized API       │  │
+│  │                    │ Helper   │      Client                 │  │
+│  │                    └────┬─────┘                              │  │
+│  │                         │                                   │  │
+│  │  Token Storage:          │      All requests include        │  │
+│  │  localStorage:           │      Authorization: Bearer...   │  │
+│  │  - intelToken ────────────────────────────────┐            │  │
+│  │  - user                                       │            │  │
+│  └───────────────────────┼──────────────────────┼─────────────┘  │
+│                          │                      │                │
+└──────────────────────────┼──────────────────────┼────────────────┘
+                           │                      │
+                ┌──────────▼──────────┐           │
+                │  Vite Dev Server    │           │
+                │  Proxy Handler      │           │
+                │  Port 5173          │           │
+                └──────────┬──────────┘           │
+                           │                      │
+          ┌────────────────┴──────────────────┐   │
+          │                                   │   │
+          ▼                                   ▼   ▼
+  ┌──────────────────────┐         ┌──────────────────────┐
+  │  Express Backend     │         │  Flask Backend       │
+  │  http://localhost:5001          http://localhost:8000 │
+  │                                   │
+  │  ┌────────────────────┐          │
+  │  │  /api/auth         │          │  (Scraping, Upload)
+  │  │  /api/wishlist     │          │
+  │  │  /api/alerts       │          │
+  │  │  /api/search-...   │          │
+  │  │  /api/user         │          │
+  │  │  /api/analytics    │          │
+  │  └────────┬───────────┘          │
+  │           │                      │
+  └───────────┼──────────────────────┘
+              │
+              ▼
+    ┌──────────────────────┐
+    │  PostgreSQL Database │
+    │  price_intelligence  │
+    │                      │
+    │  ┌──────────────┐    │
+    │  │ users table  │    │
+    │  │ id, email,.. │    │
+    │  └──────────────┘    │
+    │                      │
+    │  ┌──────────────┐    │
+    │  │ wishlist     │    │
+    │  │ user_id (FK) │    │
+    │  └──────────────┘    │
+    │                      │
+    │  ┌──────────────┐    │
+    │  │ price_alerts │    │
+    │  │ user_id (FK) │    │
+    │  └──────────────┘    │
+    │                      │
+    │  ┌──────────────┐    │
+    │  │ search_hist  │    │
+    │  │ user_id (FK) │    │
+    │  └──────────────┘    │
+    │                      │
+    └──────────────────────┘
+```
+
+## Authentication Flow (Detailed)
+
+```
+1. REGISTRATION
+═══════════════════════════════════════════════════════════
+
+User Input                Browser                 Backend
+   │                        │                        │
+   ├─ Name, Email,  ─────> │                        │
+   │   Password             │                        │
+   │                        ├─ POST /api/auth/register
+   │                        ├──────────────────────> │
+   │                        │                        │
+   │                        │  ┌──────────────────┐  │
+   │                        │  │ 1. Hash password  │  │
+   │                        │  │    (bcrypt)       │  │
+   │                        │  │ 2. Create user    │  │
+   │                        │  │ 3. Generate JWT   │  │
+   │                        │  │ 4. Return token   │  │
+   │                        │  └──────────────────┘  │
+   │                        │ <──────────────────────
+   │  localStorage =        │ JWT Token
+   │  {                     │
+   │    intelToken: "...",  │
+   │    user: { id, ..}     │
+   │  }                     │
+   │                        │
+   └────────────────────> DASHBOARD
+                         (logged in)
+
+
+2. LOGIN
+═══════════════════════════════════════════════════════════
+
+User Input                Browser                 Backend
+   │                        │                        │
+   ├─ Email,        ─────> │                        │
+   │   Password             │                        │
+   │                        ├─ POST /api/auth/login
+   │                        ├──────────────────────> │
+   │                        │                        │
+   │                        │  ┌──────────────────┐  │
+   │                        │  │ 1. Find user     │  │
+   │                        │  │ 2. Check password│  │
+   │                        │  │ 3. Generate JWT  │  │
+   │                        │  │ 4. Return token  │  │
+   │                        │  └──────────────────┘  │
+   │                        │ <──────────────────────
+   │  localStorage =        │ JWT Token
+   │  {                     │
+   │    intelToken: "...",  │
+   │    user: { id, ..}     │
+   │  }                     │
+   │                        │
+   └────────────────────> DASHBOARD
+                         (logged in)
+
+
+3. ACCESSING PROTECTED ROUTES
+═══════════════════════════════════════════════════════════
+
+User Click          Browser                 Backend
+   │                   │                        │
+   ├─ View Wishlist ─> │                        │
+   │                   ├─ GET /api/wishlist/123
+   │                   │  + Header:
+   │                   │    Authorization:
+   │                   │    Bearer {JWT}        │
+   │                   ├──────────────────────> │
+   │                   │                        │
+   │                   │  ┌──────────────────┐  │
+   │                   │  │ 1. Extract JWT   │  │
+   │                   │  │ 2. Verify token  │  │
+   │                   │  │ 3. Extract user  │  │
+   │                   │  │ 4. Check if user │  │
+   │                   │  │    owns resource │  │
+   │                   │  │ 5. Return data   │  │
+   │                   │  └──────────────────┘  │
+   │                   │ <──────────────────────
+   │  Display Data      │ User's wishlist
+   │                   │
+   └─────────────────> [Wishlist shown]
+
+
+4. TOKEN EXPIRATION / INVALID TOKEN
+═══════════════════════════════════════════════════════════
+
+User Click          Browser                 Backend
+   │                   │                        │
+   ├─ Try to access ─> │                        │
+   │   protected data   │                        │
+   │                   ├─ GET /api/wishlist/123
+   │                   │  + Bearer {EXPIRED}    │
+   │                   ├──────────────────────> │
+   │                   │                        │
+   │                   │  ┌──────────────────┐  │
+   │                   │  │ Token is invalid │  │
+   │                   │  │ or expired       │  │
+   │                   │  │ → Return 401     │  │
+   │                   │  └──────────────────┘  │
+   │                   │ <──────────────────────
+   │  401 Unauthorized  │
+   │                   │
+   │  ┌─────────────────────────────┐
+   │  │ Auto-logout:                │
+   │  │ 1. Clear localStorage       │
+   │  │ 2. Redirect to /login       │
+   │  │ 3. Show login form          │
+   │  └─────────────────────────────┘
+   │
+   └─ Must login again
+
+
+5. LOGOUT
+═══════════════════════════════════════════════════════════
+
+User Click          Browser                 Backend
+   │                   │                        │
+   ├─ Click Logout ──> │                        │
+   │                   ├─ Clear localStorage    │
+   │                   ├─ Clear intelToken      │
+   │                   ├─ Clear user object     │
+   │                   │                        │
+   │                   ├─ Redirect to /login    │
+   │                   │                        │
+   └─────────────────> LOGIN PAGE
+                    (not logged in)
+                    (no token)
+```
+
+## Data Flow - User Isolation Example
+
+```
+SCENARIO: Two users accessing wishlist
+═══════════════════════════════════════════════════════════
+
+User A (id=1)              Database           User B (id=2)
+   │                          │                    │
+   ├─ GET /api/wishlist/1     │                    │
+   │  + JWT (user_id: 1) ────────────────┐        │
+   │                          │          │        │
+   │                          │    ┌─────▼─────┐  │
+   │                          │    │ Verify:   │  │
+   │                          │    │ 1=1 ✓     │  │
+   │                          │    └─────┬─────┘  │
+   │                          │          │        │
+   │  ┌──────────────────┐   │          │        │
+   │  │ User A's items   │◄──────────────┤        │
+   │  ├──────────────────┤   │          │        │
+   │  │ Product A        │   │          │        │
+   │  │ Product B        │   │          │        │
+   │  └──────────────────┘   │          │        │
+   │                          │          │        │
+   │                          │          │    ├─ GET /api/wishlist/2
+   │                          │          │    │  + JWT (user_id: 2)
+   │                          │          │    │
+   │                          │    ┌─────▼─────┐
+   │                          │    │ Verify:   │
+   │                          │    │ 2=2 ✓     │
+   │                          │    └─────┬─────┘
+   │                          │          │
+   │                          │          │  ┌──────────────────┐
+   │                          │          │  │ User B's items   │
+   │                          │          │  ├──────────────────┤
+   │                          │          └─>│ Product C        │
+   │                          │             │ Product D        │
+   │                          │             └──────────────────┘
+   │                          
+   ▼                          ▼            ▼
+
+User A only sees:          Database:    User B only sees:
+- Product A                - User 1      - Product C
+- Product B                - Product A   - Product D
+                           - Product B
+                           - User 2      (Cannot access
+                           - Product C   User A's products)
+                           - Product D
+```
+
+## JWT Token Structure
+
+```
+JWT Token Structure:
+═══════════════════════════════════════════════════════════
+
+Header.Payload.Signature
+
+Example Decoded Token:
+{
+  "header": {
+    "alg": "HS256",
+    "typ": "JWT"
+  },
+  "payload": {
+    "id": 123,                          ◄── User ID
+    "email": "user@example.com",        ◄── User Email
+    "iat": 1646899200,                  ◄── Issued at
+    "exp": 1647503000                   ◄── Expires at (7 days)
+  },
+  "signature": "base64encodedstring"
+}
+
+How it's used:
+1. Generated on login/register
+2. Stored in localStorage as intelToken
+3. Sent in every API request header:
+   Authorization: Bearer {token}
+4. Verified on backend using JWT_SECRET
+5. Auto-logout when expired (401 response)
+```
+
+## Database Relationships
+
+```
+Users Table
+┌─────┬──────────┬─────────────────┬──────────┐
+│ id  │ name     │ email           │ password │
+├─────┼──────────┼─────────────────┼──────────┤
+│ 1   │ Alice    │ alice@email.com │ hash...  │
+│ 2   │ Bob      │ bob@email.com   │ hash...  │
+└─────┴──────────┴─────────────────┴──────────┘
+  ▲                ▲                   ▲
+  │ Primary Key    │ Unique Index      │ Bcrypt Hashed
+  └────────────────┴───────────────────┘
+
+
+    ┌─ FOREIGN KEY ─┐
+    │              │
+wishlist           price_alerts
+┌──┬────────┬──────┐  ┌──┬────────┬──────┬────────┐
+│id│user_id │ ... │  │id│user_id │ ... │target │
+├──┼────────┤      ├──┼────────┤      │price  │
+│1 │   1    │ ... │  │1 │   1    │ ... │ 5000  │
+│2 │   1    │ ... │  │2 │   2    │ ... │ 3000  │
+│3 │   2    │ ... │  │3 │   1    │ ... │ 8000  │
+└──┴────────┴──────┘  └──┴────────┴──────┴────────┘
+                        │ ON DELETE CASCADE
+                        └─ If user 1 deleted,
+                           all their alerts deleted
+
+
+search_history
+┌──┬────────┬──────────┐
+│id│user_id │ query    │
+├──┼────────┤──────────┤
+│1 │   1    │ "laptop" │
+│2 │   1    │ "phone"  │
+│3 │   2    │ "laptop" │
+└──┴────────┴──────────┘
+```
+
+## Security Layers
+
+```
+Layer 1: Transport Security
+─────────────────────────────────────────
+HTTPS/TLS encryption
+├─ Production: Required
+└─ Development: Disabled (http://localhost)
+
+
+Layer 2: Authentication
+─────────────────────────────────────────
+JWT Token
+├─ Generated on login/register
+├─ Expires after 7 days
+├─ Contains user_id and email
+└─ Verified with JWT_SECRET
+
+
+Layer 3: Password Security
+─────────────────────────────────────────
+Bcrypt hashing
+├─ 10 salt rounds
+├─ One-way hashing
+└─ Cannot be reversed
+
+
+Layer 4: Authorization
+─────────────────────────────────────────
+User Isolation
+├─ Backend validates req.user.id
+├─ Users can only access their own data
+├─ Foreign key constraints enforce ownership
+└─ Cascade delete removes all user data
+
+
+Layer 5: Data Integrity
+─────────────────────────────────────────
+Database Constraints
+├─ Foreign keys enforce relationships
+├─ NOT NULL prevents missing data
+├─ Unique constraints prevent duplicates
+└─ Indexes improve performance
+```
+
+## Request/Response Cycle
+
+```
+GET /api/wishlist/123
+
+REQUEST:
+═══════════════════════════════════════════════════════════
+GET /api/wishlist/123 HTTP/1.1
+Host: localhost:5001
+Authorization: Bearer eyJhbGc...
+Content-Type: application/json
+
+BACKEND PROCESSING:
+═══════════════════════════════════════════════════════════
+1. Parse Authorization header
+2. Extract JWT token
+3. Verify signature using JWT_SECRET
+4. Decode token → { id: 123, email: "...", ... }
+5. Check if userId param (123) === req.user.id (123)
+6. If ✓: Query database for user 123's wishlist
+7. If ✗: Return 401 unauthorized
+
+RESPONSE:
+═══════════════════════════════════════════════════════════
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+[
+  { id: 1, user_id: 123, product_name: "Laptop", ... },
+  { id: 2, user_id: 123, product_name: "Mouse", ... }
+]
+```
+
+---
+
+This architecture ensures:
+- ✅ **Security**: JWT + bcrypt + user isolation
+- ✅ **Scalability**: Centralized auth, indexed queries
+- ✅ **Maintainability**: Clean separation of concerns
+- ✅ **User Privacy**: Each user sees only their data
+

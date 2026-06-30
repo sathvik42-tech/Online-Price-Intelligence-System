@@ -1,0 +1,61 @@
+from amazon_selenium import search_amazon_selenium
+from ebay_scraper import search_ebay_selenium
+
+def main():
+    """
+    Main entry point for the Online Price Intelligence System.
+    Coordinates between different scraper modules based on user input.
+    """
+    print("========================================")
+    print("   ONLINE PRICE INTELLIGENCE SYSTEM")
+    print("========================================\n")
+    
+    # 2. Ask user for keyword input
+    keyword = input("Enter the product you want to search for: ").strip()
+    
+    if not keyword:
+        print("Error: Keyword cannot be empty.")
+        return
+
+    try:
+        # 3. Call both functions
+        # Using search_amazon_selenium for a more robust extraction (handles JS/Dynamic content)
+        amazon_results = search_amazon_selenium(keyword)
+        ebay_results = search_ebay_selenium(keyword)
+        
+        # 4. Print results separately
+        
+        # --- AMAZON RESULTS ---
+        print("\n" + "=" * 40)
+        print("----- AMAZON RESULTS -----")
+        print("=" * 40)
+        if amazon_results:
+            for idx, p in enumerate(amazon_results, 1):
+                print(f"{idx}. {p['title']}")
+                print(f"   Price:  {p['price']}")
+                print(f"   Rating: {p['rating']}")
+                print(f"   URL:    {p['url']}")
+                print("-" * 40)
+        else:
+            print("No results found on Amazon.")
+
+        # --- EBAY RESULTS ---
+        print("\n" + "=" * 40)
+        print("----- EBAY RESULTS -----")
+        print("=" * 40)
+        if ebay_results:
+            for idx, p in enumerate(ebay_results, 1):
+                print(f"{idx}. {p['title']}")
+                print(f"   Price:    {p['price']}")
+                print(f"   Shipping: {p['shipping']}")
+                print(f"   URL:      {p['url']}")
+                print("-" * 40)
+        else:
+            print("No results found on eBay.")
+
+    except Exception as e:
+        # 5. Handle exceptions gracefully
+        print(f"\nAn error occurred during comparison: {e}")
+
+if __name__ == "__main__":
+    main()

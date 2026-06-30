@@ -1,0 +1,348 @@
+# Authentication Integration Guide
+
+## Overview
+
+This guide explains how authentication (auth) has been integrated with all existing features in the Price Intelligence System, including:
+
+- **Wishlist** - Personal product collection
+- **Price Alerts** - Price monitoring with notifications
+- **Search History** - Track user searches
+- **Dashboard** - User overview and insights
+- **User Profile** - Manage account information
+
+## Architecture
+
+### Backend (Express)
+
+- **JWT-based authentication** with 7-day token expiration
+- **Password hashing** using bcrypt (10 salt rounds)
+- **Protected routes** using auth middleware
+- **User isolation** - each user only accesses their own data
+- **Automatic password reset** with email tokens
+
+### Frontend (React + Vite)
+
+- **Centralized API client** (`src/api.js`) handles all HTTP requests
+- **Automatic login redirect** on 401 unauthorized responses
+- **ProtectedRoute wrapper** prevents access to authenticated pages without token
+- **Local storage** for token (`intelToken`) and user data (`user`)
+
+### Database
+
+- **PostgreSQL** with proper foreign key constraints
+- **Cascading deletes** - user deletion removes all associated data
+- **Indexes** for fast queries on user_id and product_id
+
+## Key Changes Made
+
+### 1. Database Schema Normalization
+
+**Before:** `price_alerts` used `user_email` for identification
+**After:** All tables now use `user_id` with foreign key constraints
+
+```sql
+ALTER TABLE price_alerts 
+ADD CONSTRAINT fk_price_alerts_user_id 
+FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+```
+
+Run migration: `node backend-express/db/migrate.js`
+
+### 2. Backend Routes
+
+All protected routes now require valid JWT authentication:
+
+#### Auth Routes (`/api/auth`)
+- `POST /register` - Register new user
+- `POST /login` - Login and get JWT token
+- `POST /forgot-password` - Request password reset
+- `POST /reset-password` - Reset password with token
+
+#### Protected Routes (require Token in Authorization header)
+- `POST /api/price-alert` - Create alert
+- `GET /api/price-alert/user/:userId` - Get user's alerts
+- `DELETE /api/price-alert/:alertId` - Delete alert
+- `PUT /api/price-alert/:alertId` - Update alert
+
+- `POST /api/wishlist` - Add to wishlist
+- `GET /api/wishlist/:userId` - Get wishlist
+- `DELETE /api/wishlist/:id` - Remove item
+
+- `POST /api/search-history` - Record search
+- `GET /api/search-history/:userId` - Get history
+
+- `GET /api/user/profile` - Get user profile
+- `POST /api/user/profile` - Update user profile
+
+- `GET /api/analytics/recommendations/:userId` - Get recommendations
+- `GET /api/analytics/price-history` - Get price trends
+
+### 3. Frontend API Integration
+
+All pages now use the centralized `api.js` helper:
+
+```javascript
+import { apiGet, apiPost, apiDelete } from '../api';
+
+// Instead of:
+// fetch('http://localhost:5001/api/wishlist/1', { headers: { 'Authorization': `Bearer ${token}` } })
+
+// Use:
+const wishlist = await apiGet('/api/wishlist/1');
+```
+
+#### Updated Pages
+- ✅ AuthPage.jsx - Login/Register
+- ✅ DashboardPage.jsx - User overview
+- ✅ WishlistPage.jsx - Product collection
+- ✅ SearchHistoryPage.jsx - Search history
+- ✅ ProfilePage.jsx - User settings
+- ✅ LandingPage.jsx - Recommendations
+- ✅ ResultsPage.jsx - Search results
+- ✅ ForgotPasswordPage.jsx - Password recovery
+- ✅ ResetPasswordPage.jsx - Password reset
+- ✅ ProductTrendModal.jsx - Price trends
+
+## Security Features
+
+### Token Management
+- Tokens stored in localStorage with key `intelToken`
+- Automatically sent in all API requests via Authorization header
+- Auto-logout on expired/invalid token (401 response)
+
+### Password Security
+- Bcrypt hashing with 10 salt rounds
+- Minimum 6 characters required
+- Password reset tokens expire after 1 hour
+- Password reset tokens are cryptographically secure (32 bytes)
+
+### User Isolation
+- Each route validates user ownership of resources
+- Users can only access their own data
+- Example: `GET /api/wishlist/:userId` checks if userId === req.user.id
+
+### Email Verification
+- Password reset requires email confirmation
+- Email service configured in backend/.env
+- Falls back gracefully if email service unavailable
+
+## Setup Instructions
+
+### 1. Environment Configuration
+
+**Backend** (`backend-express/.env`)
+```env
+DB_NAME=price_intelligence_db
+DB_USER=postgres
+DB_PASSWORD=your_password
+DB_HOST=localhost
+DB_PORT=5432
+JWT_SECRET=your_super_secret_key_here
+PORT_EXPRESS=5001
+NODE_ENV=development
+```
+
+**Frontend** (`frontend/.env` - optional)
+```env
+# Development uses Vite proxy, no setup needed
+# For production:
+VITE_API_URL=https://api.yoursite.com
+```
+
+### 2. Database Migration
+
+```bash
+cd backend-express
+npm install
+node db/migrate.js  # Migrates price_alerts to use user_id
+```
+
+### 3. Start Servers
+
+**Terminal 1 - Express Backend:**
+```bash
+cd backend-express
+npm install
+npm start
+# Runs on http://localhost:5001
+```
+
+**Terminal 2 - Frontend:**
+```bash
+cd frontend
+npm install
+npm run dev
+# Runs on http://localhost:5173
+```
+
+**Terminal 3 - Python Backend (if using scrapers):**
+```bash
+cd backend
+python -m uvicorn app.main:app --reload --port 8000
+# Runs on http://localhost:8000
+```
+
+## Testing the Auth Flow
+
+### 1. Register New User
+```
+1. Navigate to http://localhost:5173/login
+2. Click "Sign Up"
+3. Fill in name, email, password
+4. Click "Register"
+→ Should redirect to dashboard
+```
+
+### 2. Test Protected Features
+```
+Dashboard:
+- Should show welcome message with user name
+- Should display wishlist preview
+- Should show search history
+- Should show price alerts
+
+Wishlist:
+- Click "Wishlist" in navigation
+- Should load user's saved products
+- Can add/remove items while logged in
+
+Alerts:
+- Click "Set Price Alert" on search results
+- Should save alerts tied to user ID
+- Can view in Dashboard → Active Surveillance
+```
+
+### 3. Test Logout
+```
+- Click user avatar/profile menu
+- Click "Logout"
+- Should clear tokens and redirect to /login
+- Dashboard should no longer be accessible
+```
+
+### 4. Test Profile Update
+```
+1. Go to Profile page (click avatar → Settings)
+2. Click "Edit Profile"
+3. Change name/email
+4. Click "Save"
+→ Should update in dashboard welcome message
+```
+
+### 5. Password Reset Flow
+```
+1. Go to /forgotten-password
+2. Enter email
+3. Check console/email for reset link
+4. Open reset link
+5. Enter new password
+6. Should redirect to login
+7. Login with new password
+```
+
+## Troubleshooting
+
+### "Unauthorized" Errors
+**Problem:** Getting 401 status on protected routes
+**Solution:** 
+- Check token is stored in localStorage: `localStorage.getItem('intelToken')`
+- Verify token in Authorization header: Browser DevTools → Network → Headers
+- Re-login to get fresh token
+
+### User ID Mismatch
+**Problem:** Can't access own data on routes like `/api/wishlist/:userId`
+**Solution:**
+- Verify `user` object in localStorage has correct `id` field
+- Check JWT token contains correct user ID: decode at jwt.io
+- Ensure database migration ran successfully
+
+### API Calls Still Going to localhost
+**Problem:** Seeing `http://localhost:5001` in network requests
+**Solution:**
+- Import from correct path: `import { apiGet } from '../api'`
+- Check file is using `apiGet`/`apiPost` not direct `fetch()`
+- Clear browser cache: Ctrl+Shift+Delete
+
+### Database Connection Fails
+**Problem:** "Error connecting to database"
+**Solution:**
+```bash
+# Check PostgreSQL is running
+psql -U postgres -c "SELECT version();"
+
+# Verify .env credentials
+cat backend-express/.env | grep DB_
+
+# Test connection
+psql -U $DB_USER -h $DB_HOST -d $DB_NAME
+```
+
+### Email Service Not Working
+**Problem:** Password reset emails not sending
+**Solution:**
+- This is optional - system works without email
+- To enable: Set EMAIL_USER and EMAIL_PASS in .env
+- Use Gmail App Password (not regular password)
+- Or install local email service (Mailhog)
+
+## Security Checklist
+
+- [ ] Change JWT_SECRET in production
+- [ ] Use HTTPS for all API calls in production
+- [ ] Set secure HttpOnly cookies (optional alternative to localStorage)
+- [ ] Implement rate limiting on auth endpoints
+- [ ] Add CORS configuration for production domain
+- [ ] Enable password hashing verification with bcrypt
+- [ ] Set up email service for password resets
+- [ ] Create database backups before deploying
+- [ ] Monitor failed login attempts
+- [ ] Implement session timeout (currently 7 days)
+
+## Extending Authentication
+
+### Add Social Login
+1. Install passport strategies: `npm install passport-google-oauth20`
+2. Create new auth routes in backend
+3. Add login provider buttons in AuthPage.jsx
+4. Exchange auth code for JWT token
+
+### Add Two-Factor Authentication
+1. Install TOTP library: `npm install speakeasy qrcode`
+2. Generate QR code after registration
+3. Verify TOTP on login
+4. Store verified status in database
+
+### Add Email Verification
+1. Generate verification token on registration
+2. Send email with verification link
+3. Block user until email verified
+4. Resend verification email endpoint
+
+### Add API Keys for External Access
+1. Generate random API keys for users
+2. Create middleware to validate API keys
+3. Allow server-to-server authentication
+
+## Performance Optimization
+
+### Database
+- Indexes created on `user_id` and `product_id` for fast queries
+- Foreign keys for data integrity with cascading deletes
+- Connection pooling configured in db.js
+
+### API
+- Token validation is O(1) - simple JWT decode
+- User isolation queries are indexed
+- Caching recommendations based on search history
+
+### Frontend
+- API calls batched using Promise.all() where possible
+- Auto-logout doesn't reload page, just clears state
+- Protected routes use React Router guards
+
+## Additional Resources
+
+- [JWT Best Practices](https://tools.ietf.org/html/rfc7519)
+- [OWASP Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)
+- [bcrypt Documentation](https://github.com/kelektiv/node.bcrypt.js)
+- [React Router Protected Routes](https://reactrouter.com/docs/en/v6/getting-started)

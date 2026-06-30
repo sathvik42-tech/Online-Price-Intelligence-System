@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+python-multipart
+tensorflow
+pillow
+numpy
+requests
+python-dotenv
+beautifulsoup4
+psycopg2-binary
+redis>=4.5.0
+celery>=5.3.0
+flower>=2.0.0
+aiofiles>=23.0.0
+psutil>=5.9.0
